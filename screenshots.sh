@@ -14,7 +14,7 @@ mode="full"
 # script info
 help_dialog="Simple script for making screenshots
 
-example usage:      ./screenshots_lite.sh -w -l /home/$USER/Pictures
+example usage:      ./screenshots.sh -w -l /home/$USER/Pictures
                     will create a screenshot of currently focused window and save it to the Pictures folder of a current user
 
 options:
@@ -29,7 +29,7 @@ options:
 #
 function take_screenshot() {
   if [ "${mode}" = "area" ] && [ "${verbose}" = "true" ]; then
-    echo "Please select an area"
+    echo "Waiting for area selection"
   fi
   cmd="screenshot_${mode}_command"
   cmd=${!cmd//\%img/${1}}
