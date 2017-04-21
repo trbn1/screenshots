@@ -11,8 +11,7 @@ xclip
 ## Usage
 Basically, you use it like any other shell script
 ### Instructions
-First make the script executable, if already isn't
-Then run e.g.
+First make the script executable, if already isn't, and then run e.g.
 ```
 ./screenshots.sh
 ```
