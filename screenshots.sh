@@ -2,14 +2,10 @@
 ### simple screenshotter (selected area, active window or entire screen)
 
 ###
-# file format and location
-curr_proc=$(cat /proc/$(xdotool getwindowpid $(xdotool getwindowfocus))/comm)
-filename_format="${curr_proc}_$(date +"%Y-%m-%d_%H-%M-%S").png"
-location="/home/$USER/Pictures/Screenshots"
-
 # default variables
 verbose="false"
 mode="full"
+silent="false"
 
 # script info
 help_dialog="Simple script for making screenshots
@@ -23,10 +19,39 @@ options:
 -a | --area         screenshot an area
 -w | --window       screenshot current window
 -f | --full         screenshot entire screen
--l | --location     select location for a screenshot file"
+-l | --location     select location for a screenshot file
+-s | --silent       don't show notification after successful screenshot"
 
 ###
 #
+function file_init() {
+  # file format and location
+  curr_proc=$(cat /proc/$(xdotool getwindowpid $(xdotool getwindowfocus))/comm)
+
+  if [ "${curr_proc}" = "" ] || [ "${mode}" = "full" ] || [ "${mode}" = "" ]; then
+    filename_format="$(date +"%Y-%m-%d_%H-%M-%S").png"
+  else
+    filename_format="${curr_proc}_$(date +"%Y-%m-%d_%H-%M-%S").png"
+  fi
+
+  pictures_folder=$(xdg-user-dir PICTURES)
+  location="$pictures_folder/Screenshots/ShareX"
+
+  # create filename
+  file_dir="${location}/$(date +%Y)/$(date +%m)"
+  if [ ! -e ${file_dir} ]; then
+    mkdir -p ${file_dir}
+    if [ "${?}" != "0" ]; then
+      notify error "Couldn't create given directory"
+      if [ "${verbose}" = "true" ]; then
+        echo "mkdir failed"
+      fi
+      exit 1
+    fi
+  fi
+  img_file="${file_dir}/${filename_format}"
+}
+
 function take_screenshot() {
   if [ "${mode}" = "area" ] && [ "${verbose}" = "true" ]; then
     echo "Waiting for area selection"
@@ -47,8 +72,23 @@ function take_screenshot() {
 function notify() {
   if [ "${1}" = "error" ]; then
     notify-send --hint=int:transient:1 -a Screenshot -u low -c "im.error" -i error -t 2000 "${2}"
-  else
+  elif [ "${silent}" = "false" ]; then
     notify-send --hint=int:transient:1 -a Screenshot -u low -c "transfer.complete" -t 2000 "${2}" "${3}"
+  fi
+}
+
+function verify() {
+  if [ ! -f "${img_file}" ]; then
+    if [ "${verbose}" = "true" ]; then
+      echo "File '${img_file}' doesn't exist!"
+    fi
+    exit 1
+  else
+    xclip -selection clipboard -t image/png -i ${img_file}
+    notify ok "Screenshot succesfully taken:" "${img_file}"
+    if [ "${verbose}" = "true" ]; then
+      echo "Success. File location: ${img_file}"
+    fi
   fi
 }
 
@@ -75,25 +115,17 @@ while [ ${#} != 0 ]; do
     -l | --location)
       location="${2}"
       shift;;
+    -s | --silent)
+      silent="true"
+      shift;;
     *)
       break;;
   esac
 done
 
 ###
-# create filename
-file_dir="${location}/$(date +%Y)/$(date +%m)"
-if [ ! -e ${file_dir} ]; then
-  mkdir -p ${file_dir}
-  if [ "${?}" != "0" ]; then
-    notify error "Couldn't create given directory"
-    if [ "${verbose}" = "true" ]; then
-      echo "mkdir failed"
-    fi
-    exit 1
-  fi
-fi
-img_file="${file_dir}/${filename_format}"
+#
+file_init
 
 # commands
 screenshot_area_command="gnome-screenshot -a --file=${img_file}"
@@ -103,16 +135,6 @@ screenshot_full_command="gnome-screenshot --file=${img_file}"
 #
 take_screenshot "${img_file}"
 
-# verify
-if [ ! -f "${img_file}" ]; then
-  if [ "${verbose}" = "true" ]; then
-    echo "File '${img_file}' doesn't exist!"
-  fi
-  exit 1
-else
-  xclip -selection clipboard -t image/png -i ${img_file}
-  notify ok "Screenshot succesfully taken:" "${img_file}"
-  if [ "${verbose}" = "true" ]; then
-    echo "Success. File location: ${img_file}"
-  fi
-fi
+#
+verify
+
