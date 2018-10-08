@@ -24,4 +24,5 @@ By default it will create a screenshot of the entire screen and save it to the P
 -w | --window       screenshot current window
 -f | --full         screenshot entire screen
 -l | --location     select location for a screenshot file
+-s | --silent       don't show notification after successful screenshot
 ```
