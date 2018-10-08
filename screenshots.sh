@@ -128,9 +128,9 @@ done
 file_init
 
 # commands
-screenshot_area_command="gnome-screenshot -a --file=${img_file}"
-screenshot_window_command="gnome-screenshot -w --file=${img_file}"
-screenshot_full_command="gnome-screenshot --file=${img_file}"
+screenshot_area_command="gnome-screenshot -a -p --file=${img_file}"
+screenshot_window_command="gnome-screenshot -w -B -p --file=${img_file}"
+screenshot_full_command="gnome-screenshot -p --file=${img_file}"
 
 #
 take_screenshot "${img_file}"
