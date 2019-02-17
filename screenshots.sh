@@ -6,12 +6,14 @@
 verbose="false"
 mode="full"
 silent="false"
+screenshot_subdir="Screenshots/ShareX"
 
 # script info
 help_dialog="Simple script for making screenshots
 
 example usage:      ./screenshots.sh -w -l /home/$USER/Pictures
-                    will create a screenshot of currently focused window and save it to the Pictures folder of a current user
+                    will create a screenshot of currently focused window and 
+                    save it to the Pictures folder of a current user
 
 options:
 -h | --help         print this dialog
@@ -35,7 +37,7 @@ function file_init() {
   fi
 
   pictures_folder=$(xdg-user-dir PICTURES)
-  location="$pictures_folder/Screenshots/ShareX"
+  location="$pictures_folder/$screenshot_subdir"
 
   # create filename
   file_dir="${location}/$(date +%Y)/$(date +%m)"
@@ -128,9 +130,9 @@ done
 file_init
 
 # commands
-screenshot_area_command="gnome-screenshot -a -p --file=${img_file}"
-screenshot_window_command="gnome-screenshot -w -B -p --file=${img_file}"
-screenshot_full_command="gnome-screenshot -p --file=${img_file}"
+screenshot_area_command="maim -m 10 -s -o ${img_file}"
+screenshot_window_command="maim -m 10 -i $(xdotool getactivewindow) ${img_file}"
+screenshot_full_command="maim -m 10 ${img_file}"
 
 #
 take_screenshot "${img_file}"
