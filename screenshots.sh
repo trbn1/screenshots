@@ -102,7 +102,7 @@ function upload() {
   upload_cmd=""
   output=$(eval "${upload_cmd}")
   if [[ $output = *"https"* ]]; then
-    echo "${output}" | xclip -selection clipboard
+    echo "${output}" | xclip -selection clipboard -rmlastnl
     notify ok "Screenshot succesfully uploaded:" "${output}"
     if [ "${verbose}" = "true" ]; then
       echo "${output}"
@@ -156,7 +156,7 @@ done
 file_init
 
 # commands
-screenshot_area_command="maim -m 10 -s ${img_file}"
+screenshot_area_command="maim -m 10 -c 0,255,0,0.5 --hidecursor -s ${img_file}"
 screenshot_window_command="maim -m 10 -i $(xdotool getactivewindow) ${img_file}"
 screenshot_full_command="maim -m 10 ${img_file}"
 
