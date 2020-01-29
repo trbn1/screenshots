@@ -6,6 +6,7 @@
 verbose="false"
 mode="full"
 silent="false"
+upload="false"
 screenshot_subdir="Screenshots/ShareX"
 
 # script info
@@ -22,7 +23,8 @@ options:
 -w | --window       screenshot current window
 -f | --full         screenshot entire screen
 -l | --location     select location for a screenshot file
--s | --silent       don't show notification after successful screenshot"
+-s | --silent       don't show notification after successful screenshot
+-u | --upload       upload resulting image with a given command"
 
 ###
 #
@@ -86,11 +88,32 @@ function verify() {
     fi
     exit 1
   else
-    xclip -selection clipboard -t image/png -i ${img_file}
-    notify ok "Screenshot succesfully taken:" "${img_file}"
+    if [ "${upload}" = "false" ]; then
+      xclip -selection clipboard -t image/png -i ${img_file}
+      notify ok "Screenshot succesfully taken:" "${img_file}"
+    fi
     if [ "${verbose}" = "true" ]; then
       echo "Success. File location: ${img_file}"
     fi
+  fi
+}
+
+function upload() {
+  upload_cmd=""
+  output=$(eval "${upload_cmd}")
+  if [[ $output = *"https"* ]]; then
+    echo "${output}" | xclip -selection clipboard
+    notify ok "Screenshot succesfully uploaded:" "${output}"
+    if [ "${verbose}" = "true" ]; then
+      echo "${output}"
+    fi
+  else
+    notify error "Error while uploading the screenshot"
+    if [ "${verbose}" = "true" ]; then
+      echo "Executing '${upload_cmd}' has failed"
+      echo "${output}"
+    fi
+    exit 1
   fi
 }
 
@@ -120,6 +143,9 @@ while [ ${#} != 0 ]; do
     -s | --silent)
       silent="true"
       shift;;
+    -u | --upload)
+      upload="true"
+      shift;;
     *)
       break;;
   esac
@@ -130,7 +156,7 @@ done
 file_init
 
 # commands
-screenshot_area_command="maim -m 10 -s -o ${img_file}"
+screenshot_area_command="maim -m 10 -s ${img_file}"
 screenshot_window_command="maim -m 10 -i $(xdotool getactivewindow) ${img_file}"
 screenshot_full_command="maim -m 10 ${img_file}"
 
@@ -140,3 +166,7 @@ take_screenshot "${img_file}"
 #
 verify
 
+#
+if [ "${upload}" = "true" ]; then
+  upload
+fi

@@ -28,6 +28,8 @@ By default it will create a screenshot of the entire screen, copy it to clipboar
 
 This script works best when binded to a key.
 
+To upload the image, configure the `upload_cmd` command.
+
 ### Additional parameters
 
 ```
@@ -38,4 +40,5 @@ This script works best when binded to a key.
 -f | --full         screenshot entire screen
 -l | --location     select location for a screenshot file
 -s | --silent       don't show notification after successful screenshot
+-u | --upload       upload resulting image with a given command
 ```
