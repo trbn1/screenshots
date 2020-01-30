@@ -7,9 +7,12 @@ This is a simple bash script for creating screenshots with filename and director
 ```
 bash
 xdotool
-libnotify (if not built-in)
+libnotify
 maim
 xclip
+xdpyinfo
+feh
+wmctrl
 ```
 
 ## Usage

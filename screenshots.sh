@@ -7,7 +7,7 @@ verbose="false"
 mode="full"
 silent="false"
 upload="false"
-screenshot_subdir="Screenshots/ShareX"
+screenshot_subdir=""
 
 # script info
 help_dialog="Simple script for making screenshots
@@ -56,20 +56,47 @@ function file_init() {
   img_file="${file_dir}/${filename_format}"
 }
 
+function overlay() {
+  IFS='x' read screenWidth screenHeight < <(xdpyinfo | grep dimensions | grep -o '[0-9x]*' | head -n1)
+  winname="DESKTOP_OVERLAY"
+  maim | feh - -x -N --no-screen-clip --title "$winname" &
+  while :
+  do
+    if wmctrl -l | grep -q "$winname"; then
+      wmctrl -r "$winname" -b remove,maximized_vert,maximized_horz
+      wmctrl -r "$winname" -e 0,0,0,"$screenWidth","$screenHeight"
+      break
+    fi
+  done
+}
+
 function take_screenshot() {
-  if [ "${mode}" = "area" ] && [ "${verbose}" = "true" ]; then
-    echo "Waiting for area selection"
+  if [ "${mode}" = "area" ]; then
+    if [ "${verbose}" = "true" ]; then
+      echo "Waiting for area selection"
+    fi
+    overlay
   fi
   cmd="screenshot_${mode}_command"
   cmd=${!cmd//\%img/${1}}
 
+  if [ "${mode}" = "area" ]; then
+    xdotool search "$winname" windowactivate --sync key --clearmodifiers KP_Multiply
+  fi
   shot_err="$(${cmd} &>/dev/null)"
   if [ "${?}" != "0" ]; then
     notify error "Error while taking a screenshot"
     if [ "${verbose}" = "true" ]; then
       echo "Executing '${cmd}' has failed"
     fi
+    if [ "${mode}" = "area" ]; then
+      killall -15 feh
+    fi
     exit 1
+  fi
+
+  if [ "${mode}" = "area" ]; then
+    killall -15 feh
   fi
 }
 
