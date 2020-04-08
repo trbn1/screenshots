@@ -7,12 +7,10 @@ This is a simple bash script for creating screenshots with filename and director
 ```
 bash
 xdotool
+xdg-user-dir
 libnotify
-maim
+spectacle
 xclip
-xdpyinfo
-feh
-wmctrl
 ```
 
 ## Usage
@@ -40,6 +38,7 @@ To upload the image, configure the `upload_cmd` command.
 -v | --verbose      output more info
 -a | --area         screenshot an area
 -w | --window       screenshot current window
+-c | --current      screenshot current monitor
 -f | --full         screenshot entire screen
 -l | --location     select location for a screenshot file
 -s | --silent       don't show notification after successful screenshot

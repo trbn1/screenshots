@@ -13,7 +13,7 @@ screenshot_subdir=""
 help_dialog="Simple script for making screenshots
 
 example usage:      ./screenshots.sh -w -l /home/$USER/Pictures
-                    will create a screenshot of currently focused window and 
+                    will create a screenshot of currently focused window and
                     save it to the Pictures folder of a current user
 
 options:
@@ -21,6 +21,7 @@ options:
 -v | --verbose      output more info
 -a | --area         screenshot an area
 -w | --window       screenshot current window
+-c | --current      screenshot current monitor
 -f | --full         screenshot entire screen
 -l | --location     select location for a screenshot file
 -s | --silent       don't show notification after successful screenshot
@@ -56,55 +57,30 @@ function file_init() {
   img_file="${file_dir}/${filename_format}"
 }
 
-function overlay() {
-  IFS='x' read screenWidth screenHeight < <(xdpyinfo | grep dimensions | grep -o '[0-9x]*' | head -n1)
-  winname="DESKTOP_OVERLAY"
-  maim | feh - -x -N --no-screen-clip --title "$winname" &
-  while :
-  do
-    if wmctrl -l | grep -q "$winname"; then
-      wmctrl -r "$winname" -b remove,maximized_vert,maximized_horz
-      wmctrl -r "$winname" -e 0,0,0,"$screenWidth","$screenHeight"
-      break
-    fi
-  done
-}
-
 function take_screenshot() {
   if [ "${mode}" = "area" ]; then
     if [ "${verbose}" = "true" ]; then
       echo "Waiting for area selection"
     fi
-    overlay
   fi
   cmd="screenshot_${mode}_command"
   cmd=${!cmd//\%img/${1}}
 
-  if [ "${mode}" = "area" ]; then
-    xdotool search "$winname" windowactivate --sync key --clearmodifiers KP_Multiply
-  fi
   shot_err="$(${cmd} &>/dev/null)"
   if [ "${?}" != "0" ]; then
     notify error "Error while taking a screenshot"
     if [ "${verbose}" = "true" ]; then
       echo "Executing '${cmd}' has failed"
     fi
-    if [ "${mode}" = "area" ]; then
-      killall -15 feh
-    fi
     exit 1
-  fi
-
-  if [ "${mode}" = "area" ]; then
-    killall -15 feh
   fi
 }
 
 function notify() {
   if [ "${1}" = "error" ]; then
-    notify-send --hint=int:transient:1 -a Screenshot -u low -c "im.error" -i error -t 2000 "${2}"
+    notify-send --hint=int:transient:1 -a Screenshot -u low -c "im.error" -i error -t 5000 "${2}"
   elif [ "${silent}" = "false" ]; then
-    notify-send --hint=int:transient:1 -a Screenshot -u low -c "transfer.complete" -t 2000 "${2}" "${3}"
+    notify-send --hint=int:transient:1 -a Screenshot -u low -c "transfer.complete" -t 5000 "${2}" "${3}"
   fi
 }
 
@@ -161,6 +137,9 @@ while [ ${#} != 0 ]; do
     -w | --window)
       mode="window"
       shift;;
+    -c | --current)
+      mode="current"
+      shift;;
     -f | --full)
       mode="full"
       shift;;
@@ -183,9 +162,10 @@ done
 file_init
 
 # commands
-screenshot_area_command="maim -m 10 -c 0,255,0,0.5 --hidecursor -s ${img_file}"
-screenshot_window_command="maim -m 10 -i $(xdotool getactivewindow) ${img_file}"
-screenshot_full_command="maim -m 10 ${img_file}"
+screenshot_area_command="spectacle -b -n -r -o ${img_file}"
+screenshot_window_command="spectacle -b -n -a -o ${img_file}"
+screenshot_monitor_command="spectacle -b -n -c -o ${img_file}"
+screenshot_full_command="spectacle -b -n -f -o ${img_file}"
 
 #
 take_screenshot "${img_file}"
